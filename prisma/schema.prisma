@@ -1,0 +1,102 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+model StudentUser {
+  id         Int      @id @default(autoincrement())
+  email      String   @unique
+  name       String 
+  image      String?
+  role       Role? 
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+
+  appliedProjects  AppliedProject[]
+  appliedInternships AppliedInternship[]
+}
+
+model AlumniUser{
+  id   Int @id @default(autoincrement())
+  email  String @unique
+  name String
+  image String?
+  role Role?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  internships Internship[]
+  projects Project[]
+}
+
+enum Role {
+  STUDENT
+  ALUMNI
+}
+
+
+
+model Internship {
+  id         Int      @id @default(autoincrement())
+  title      String
+  description String
+  minSal    Int
+  maxSal   Int
+  alumniId   Int
+  
+  
+  alumni     AlumniUser   @relation(fields: [alumniId], references: [id])
+  appliedInternships AppliedInternship[]
+}
+
+
+model Project {
+  id         Int      @id @default(autoincrement())
+  title      String
+  description String
+  technologies String?
+  alumniId   Int
+  
+  
+  alumni     AlumniUser  @relation(fields: [alumniId], references: [id])
+  appliedProjects  AppliedProject[]
+}
+
+model AppliedInternship {
+  id Int @id @default(autoincrement())
+  studentId  Int
+  internshipId  Int 
+  appliedAt DateTime  @default(now())
+
+
+  student StudentUser @relation(fields: [studentId] , references: [id])
+  internship Internship     @relation(fields: [internshipId] , references: [id])
+
+  @@unique([studentId, internshipId ])
+
+}
+
+model AppliedProject{
+  id   Int @id @default(autoincrement())
+  studentId Int 
+  projectId Int 
+  appliedAt DateTime @default(now())
+
+
+  student StudentUser @relation(fields: [studentId],references: [id])
+  project Project @relation(fields: [projectId] , references: [id])
+
+  @@unique([studentId , projectId])
+}
