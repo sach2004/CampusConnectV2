@@ -83,7 +83,7 @@ const Work: React.FC = () => {
           <div className="relative w-full">
             <input
               type="text"
-              placeholder="Search projects..."
+              placeholder="Search gigs..."
               className="w-[calc(100%-25px)] h-12 pl-4 pr-12 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#5169F6]"
             />
             <svg

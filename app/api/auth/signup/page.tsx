@@ -23,7 +23,10 @@ export default function SignUpPage() {
    
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    signIn("google")
+    signIn("google", {
+      callbackUrl : "/api/home?role=STUDENT",
+      redirect : false
+    });
     console.log("Form submitted");
   }; 
 

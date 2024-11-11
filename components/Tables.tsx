@@ -49,27 +49,50 @@ export default function Tables() {
   const { data: session } = useSession();
   const [data, setData] = useState<Data[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteLoading, setDeleteLoading] = useState<number | null>(null);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get("http://localhost:3000/api/auth/getInternship");
-        const filteredData = response.data.filter((item: Data) => item.email === session?.user?.email);
-        setData(filteredData);
-      } catch (error) {
-        console.log(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchData();
   }, [session]);
 
-  const handleDelete = (id: number) => {
-    console.log(`Delete item with id: ${id}`);
+  const fetchData = async () => {
+    try {
+      const response = await axios.get("http://localhost:3000/api/auth/getInternship");
+      const filteredData = response.data.filter((item: Data) => item.email === session?.user?.email);
+      setData(filteredData);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
+  const handleDelete = async (id: number, type: 'internship' | 'project') => {
+    try {
+        setDeleteLoading(id);
+        
+        await axios.post('http://localhost:3000/api/auth/deleteInternship', { id, type });
+
+        
+        setData(prevData => 
+            prevData.map(user => ({
+                ...user,
+                internships: type === 'internship' 
+                    ? user.internships.filter(item => item.id !== id)
+                    : user.internships,
+                projects: type === 'project'
+                    ? user.projects.filter(item => item.id !== id)
+                    : user.projects
+            }))
+        );
+
+    } catch (error) {
+        console.error(`Error deleting ${type}:`, error);
+        
+    } finally {
+        setDeleteLoading(null);
+    }
+};
   const renderInternships = (internships: { id: number; title: string; alumniId: number; }[]) => (
     <Table isStriped aria-label="Internships table">
       <TableHeader columns={[{ name: "Title", uid: "title" }, { name: "Actions", uid: "actions" }]}>
@@ -89,8 +112,12 @@ export default function Tables() {
             <TableCell className="text-center">
               <Tooltip color="danger" content="Delete">
                 <span
-                  className="text-lg text-danger text-center cursor-pointer"
-                  onClick={() => handleDelete(internship.id)}
+                  className={`text-lg text-danger text-center cursor-pointer ${
+                    deleteLoading === internship.id ? 'opacity-50' : ''
+                  }`}
+                  onClick={() => 
+                    deleteLoading === null && handleDelete(internship.id, 'internship')
+                  }
                 >
                   <DeleteIcon />
                 </span>
@@ -121,8 +148,12 @@ export default function Tables() {
             <TableCell className="text-left">
               <Tooltip color="danger" content="Delete" className="text-center">
                 <span
-                  className="text-lg text-danger cursor-pointer"
-                  onClick={() => handleDelete(project.id)}
+                  className={`text-lg text-danger cursor-pointer ${
+                    deleteLoading === project.id ? 'opacity-50' : ''
+                  }`}
+                  onClick={() => 
+                    deleteLoading === null && handleDelete(project.id, 'project')
+                  }
                 >
                   <DeleteIcon />
                 </span>
