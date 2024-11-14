@@ -23,7 +23,7 @@ const Header: React.FC<Textprop> = ({url} : Textprop) => {
         <div className="px-4 text-2xl font-bold">
           <h1>
             <span className="text-[#5169F6]">Campus</span>
-            <span className="text-black">Connect</span>
+            <span className="text-black">Link</span>
           </h1>
         </div>
       </div>

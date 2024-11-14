@@ -13,7 +13,7 @@ const Sidebar: React.FC<Textprops> = ({url1, url2 , url3, url4} : Textprops) => 
   return (
     <div className="min-h-full w-[95px] bg-[#F1F1F4] text-white flex flex-col">
       <div className=" flex justify-center items-center p-4 text-center bg-[#5169F6] rounded-lg  h-12 w-[50px] ml-6 mt-6">
-        <h2 className="text-2xl font-bold"><span>C</span>C</h2>
+        <h2 className="text-2xl font-bold"><span>C</span>L</h2>
       </div>
       <ul className="flex-1 flex flex-col items-center justify-center">
         <Link href={url1} passHref>
