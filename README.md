@@ -43,7 +43,6 @@ Campus Link aims to bridge the gap between students and alumni by creating a pla
 | [Next.js](https://nextjs.org) | <img src="https://i.imgur.com/z3WVd1J.png" width="100px" height="20px"> |
 | [React.js](https://reactjs.org) | <img src="https://i.imgur.com/yGlB4bI.png" width="100px" height="20px"> |
 | [Prisma](https://www.prisma.io) | <img src="https://i.imgur.com/L88UN73.png" width="100px" height="20px"> |
-| [TailwindCSS](https://tailwindcss.com) | <img src="url_here" width="100px" height="20px"> |
 | [TypeScript](https://www.typescriptlang.org) | <img src="https://i.imgur.com/sv86bbI.png" width="100px" height="20px"> |
 | [NextAuth](https://next-auth.js.org) | <img src="https://i.imgur.com/ZQ0h5Fx.png" width="100px" height="20px"> |
 
