@@ -37,8 +37,8 @@ const Work: React.FC = () => {
   const { data: session } = useSession();
   const [work, setWork] = useState<workItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true); 
-
- 
+  
+  const id = session?.user.id 
   const handleApply = async (alumnId: number, workId: number) => {
     try {
       const response = await axios.post("/api/auth/applyWork", {
@@ -115,7 +115,7 @@ const Work: React.FC = () => {
           <div className="flex flex-wrap gap-6">
             {work.map((workItem, index) => {
               const isApplied = workItem.appliedInternships.some(
-                (project) => project.internshipId === workItem.id
+                (project) => project.studentId === Number(id)
               );
 
               return !isApplied ? (

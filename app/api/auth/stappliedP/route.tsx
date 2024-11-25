@@ -11,6 +11,6 @@ export async function GET(req: NextRequest, res : NextResponse) {
         }
     })
 
-
+    console.log(JSON.stringify(work))
     return NextResponse.json(work)
 }

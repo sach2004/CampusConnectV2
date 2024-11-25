@@ -16,7 +16,7 @@ import {
 
 const Home: React.FC = () => {
   const { data: session } = useSession();
-
+  const emailSession = session?.user?.email
   interface workItem {
     id: number;
     studentId : number
@@ -65,6 +65,7 @@ const Home: React.FC = () => {
         const projData = await axios.get("/api/auth/stappliedP");
         const workData = await axios.get("/api/auth/stappliedI");
         setProj(projData.data);
+        console.log(projData.data)
         setInternship(workData.data);
       } catch (error) {
         console.log("couldn't get the data", error);
@@ -104,7 +105,7 @@ const Home: React.FC = () => {
             <div className="flex flex-wrap gap-6">
               {Internship.map((workItem, index) => {
                let isApplied = false
-               if( workItem.studentId === workItem.student.id){
+               if( emailSession === workItem.student.email){
                 isApplied = true
                }
                 return isApplied ? (
@@ -184,7 +185,7 @@ const Home: React.FC = () => {
                 {proj.map((projectItem, index) => {
                   let isApplied = false
 
-                  if(projectItem.studentId === projectItem.student.id ){
+                  if(emailSession === projectItem.student.email ){
                     isApplied = true
                   }
 

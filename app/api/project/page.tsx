@@ -16,7 +16,7 @@ import {
 
 const Project: React.FC = () => {
   const { data: session } = useSession();
-
+  const id = session?.user.id
   interface ProjectItems {
     id: number;
     title: string;
@@ -110,7 +110,7 @@ const Project: React.FC = () => {
           <div className="flex flex-wrap gap-6">
             {proj.map((item, index) => {
               const isApplied = item.appliedProjects.some(
-                (project) => project.projectId === item.id
+                (project) => project.studentId === Number(id)
               );
 
               return !isApplied ? (
