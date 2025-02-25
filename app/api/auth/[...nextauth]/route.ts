@@ -1,9 +1,7 @@
-import NextAuth from 'next-auth';
+import NextAuth, { AuthOptions } from 'next-auth';
 import Google from 'next-auth/providers/google';
 import { PrismaClient, Role } from '@prisma/client';
-import { NextApiRequest, NextApiResponse } from 'next';
-import { Prisma } from '@prisma/client';
-
+import { NextRequest } from 'next/server';
 
 declare module "next-auth" {
   interface Session {
@@ -27,197 +25,99 @@ const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET!;
 
 const prisma = new PrismaClient();
 
-interface typerole { 
-  roleGlobal : string 
-}
+let roleGlobal = "STUDENT";
 
-let roleGlobal = "STUDENT"
-
-export async function GET(req: NextApiRequest, res: NextApiResponse) {
-  return await NextAuth(req, res, {
-    session: { 
-      strategy: 'jwt', 
+// Define auth options separately to reuse in both handlers
+const authOptions: AuthOptions = {
+  session: { 
+    strategy: 'jwt', 
+  },
+  providers: [
+    Google({ 
+      clientId: GOOGLE_CLIENT_ID, 
+      clientSecret: GOOGLE_CLIENT_SECRET,
+    }),
+  ],
+  pages: {
+    signIn: '/auth/signin',
+    signOut: '/auth/signout',
+  },
+  callbacks: {
+    async redirect({ url, baseUrl }) {
+      console.log(url);
+      if(url.includes('ALUMNI')){ 
+        roleGlobal = "ALUMNI"; 
+      } else { 
+        roleGlobal = "STUDENT"; 
+      }
+      console.log(roleGlobal);
+      return url;
     },
-    providers: [
-      Google({ 
-        clientId: GOOGLE_CLIENT_ID, 
-        clientSecret: GOOGLE_CLIENT_SECRET,
-      }),
-    ],
-    pages: {
-      signIn: '/auth/signin',
-      signOut: '/auth/signout',
-    },
-    callbacks: {
-      async redirect({ url, baseUrl }) {
-        console.log(url)
-        if(url.includes('ALUMNI')){ 
-          roleGlobal = "ALUMNI" 
-        } else { 
-          roleGlobal = "STUDENT" 
-        }
-        console.log(roleGlobal)
-        return url;
-      },
-      async signIn({ account, profile }) {
-        if (!profile?.email) {
-          throw new Error('No profile');
-        }
+    async signIn({ account, profile }) {
+      if (!profile?.email) {
+        throw new Error('No profile');
+      }
 
-        const userRole : Role | undefined = Role[roleGlobal as keyof typeof Role]
-        
-        if (userRole == Role.STUDENT) {
-          await prisma.studentUser.upsert({
-            where: { email: profile.email },
-            create: { 
-              email: profile.email, 
-              name: profile.name || '', 
-              role: userRole as Role, 
-            },
-            update: { 
-              name: profile.name, 
-            },
+      const userRole : Role | undefined = Role[roleGlobal as keyof typeof Role];
+      
+      if (userRole == Role.STUDENT) {
+        await prisma.studentUser.upsert({
+          where: { email: profile.email },
+          create: { 
+            email: profile.email, 
+            name: profile.name || '', 
+            role: userRole as Role, 
+          },
+          update: { 
+            name: profile.name, 
+          },
+        });
+      } else {
+        await prisma.alumniUser.upsert({
+          where: { email: profile.email },
+          create: { 
+            email: profile.email, 
+            name: profile.name || '', 
+            role: userRole as Role, 
+          },
+          update: { 
+            name: profile.name, 
+          },
+        });
+      }
+      
+      return true;
+    },
+    async jwt({ token, user, account, profile }) {
+      if (account && profile) {
+        let dbUser;
+        if (roleGlobal === "STUDENT") {
+          dbUser = await prisma.studentUser.findUnique({
+            where: { email: profile.email as string }
           });
         } else {
-          await prisma.alumniUser.upsert({
-            where: { email: profile.email },
-            create: { 
-              email: profile.email, 
-              name: profile.name || '', 
-              role: userRole as Role, 
-            },
-            update: { 
-              name: profile.name, 
-            },
+          dbUser = await prisma.alumniUser.findUnique({
+            where: { email: profile.email as string }
           });
         }
-        
-        return true;
-      },
-      async jwt({ token, user, account, profile }) {
-       
-        if (account && profile) {
-          let dbUser;
-          if (roleGlobal === "STUDENT") {
-            dbUser = await prisma.studentUser.findUnique({
-              where: { email: profile.email as string }
-            });
-          } else {
-            dbUser = await prisma.alumniUser.findUnique({
-              where: { email: profile.email as string }
-            });
-          }
 
-          if (dbUser) {
-            
-            token.id = String(dbUser.id);
-          }
+        if (dbUser) {
+          token.id = String(dbUser.id);
         }
-        return token;
-      },
-      async session({ session, token }) {
-        
-        if (token) {
-          
-          session.user.id = String(token.id);
-        }
-        return session;
-      },
+      }
+      return token;
     },
-  });
-}
-
-export async function POST(req: NextApiRequest, res: NextApiResponse) {
-
-  return await NextAuth(req, res, {
-    session: { 
-      strategy: 'jwt', 
+    async session({ session, token }) {
+      if (token) {
+        session.user.id = String(token.id);
+      }
+      return session;
     },
-    providers: [
-      Google({ 
-        clientId: GOOGLE_CLIENT_ID, 
-        clientSecret: GOOGLE_CLIENT_SECRET,
-      }),
-    ],
-    pages: {
-      signIn: '/auth/signin',
-      signOut: '/auth/signout',
-    },
-    callbacks: {
-      async redirect({ url, baseUrl }) {
-        console.log(url)
-        if(url.includes('ALUMNI')){ 
-          roleGlobal = "ALUMNI" 
-        } else { 
-          roleGlobal = "STUDENT" 
-        }
-        console.log(roleGlobal)
-        return url;
-      },
-      async signIn({ account, profile }) {
-        if (!profile?.email) {
-          throw new Error('No profile');
-        }
+  },
+};
 
-        const userRole : Role | undefined = Role[roleGlobal as keyof typeof Role]
-        
-        if (userRole == Role.STUDENT) {
-          await prisma.studentUser.upsert({
-            where: { email: profile.email },
-            create: { 
-              email: profile.email, 
-              name: profile.name || '', 
-              role: userRole as Role, 
-            },
-            update: { 
-              name: profile.name, 
-            },
-          });
-        } else {
-          await prisma.alumniUser.upsert({
-            where: { email: profile.email },
-            create: { 
-              email: profile.email, 
-              name: profile.name || '', 
-              role: userRole as Role, 
-            },
-            update: { 
-              name: profile.name, 
-            },
-          });
-        }
-        
-        return true;
-      },
-      async jwt({ token, user, account, profile }) {
-       
-        if (account && profile) {
-          let dbUser;
-          if (roleGlobal === "STUDENT") {
-            dbUser = await prisma.studentUser.findUnique({
-              where: { email: profile.email as string }
-            });
-          } else {
-            dbUser = await prisma.alumniUser.findUnique({
-              where: { email: profile.email as string }
-            });
-          }
+// Create a NextAuth handler
+const handler = NextAuth(authOptions);
 
-          if (dbUser) {
-            
-            token.id = String(dbUser.id);
-          }
-        }
-        return token;
-      },
-      async session({ session, token }) {
-        
-        if (token) {
-         
-          session.user.id = String(token.id);
-        }
-        return session;
-      },
-    },
-  });
-}
+// Export the handler for both GET and POST methods
+export { handler as GET, handler as POST };
