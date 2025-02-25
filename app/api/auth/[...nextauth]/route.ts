@@ -23,11 +23,16 @@ declare module "next-auth/jwt" {
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID!;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET!;
 
-const prisma = new PrismaClient();
+
+const globalForPrisma = global as unknown as { prisma: PrismaClient };
+
+const prisma = globalForPrisma.prisma || new PrismaClient();
+
+if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
 
 let roleGlobal = "STUDENT";
 
-// Define auth options separately to reuse in both handlers
+
 const authOptions: AuthOptions = {
   session: { 
     strategy: 'jwt', 
@@ -116,8 +121,8 @@ const authOptions: AuthOptions = {
   },
 };
 
-// Create a NextAuth handler
+
 const handler = NextAuth(authOptions);
 
-// Export the handler for both GET and POST methods
+
 export { handler as GET, handler as POST };
